@@ -69,6 +69,16 @@ public class MegControll {
 		mMegGraphics.end();
 	}
 
+	/**
+	 * ゲームオーバー
+	 */
+	public void gameOver() {
+		mMegGraphics.begin();
+		clearScreen();
+		imageDraw(2003, 0, 0);
+		mMegGraphics.end();
+	}
+
 	private void clearScreen() {
 		mMegGraphics.clearScreen();
 	}

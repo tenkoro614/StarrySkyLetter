@@ -1,8 +1,6 @@
 package jp.co.yahoo.hackday10.runaway;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 
 import android.app.Service;

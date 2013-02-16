@@ -129,6 +129,19 @@ public class MainActivity extends Activity implements MegListener {
 				mMeg.connect(address);
 				Toast.makeText(this, "Connect to " + address,
 						Toast.LENGTH_SHORT).show();
+
+				try {
+					Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
+					AssetManager am = getResources().getAssets();
+					map.put(Integer.valueOf(2000), am.open("alert1.png"));
+					map.put(Integer.valueOf(2001), am.open("alert2.png"));
+					map.put(Integer.valueOf(2003), am.open("youlose.png"));
+					map.put(Integer.valueOf(10000), am.open("normal.png"));
+					mMegCon.init(map);
+				} catch (Exception e) {
+					Toast.makeText(this, "open asset failed",
+							Toast.LENGTH_SHORT).show();
+				}
 			}
 			break;
 		}
@@ -141,18 +154,6 @@ public class MainActivity extends Activity implements MegListener {
 		String deviceName = mMeg.getDeviceName();
 		Toast.makeText(this, "Connected to " + deviceName + ".",
 				Toast.LENGTH_SHORT).show();
-		try {
-			Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
-			AssetManager am = getResources().getAssets();
-			map.put(Integer.valueOf(2000), am.open("alert1.png"));
-			map.put(Integer.valueOf(2001), am.open("alert2.png"));
-			map.put(Integer.valueOf(2003), am.open("youlose.png"));
-			map.put(Integer.valueOf(10000), am.open("normal.png"));
-			mMegCon.init(map);
-		} catch (Exception e) {
-			Toast.makeText(this, "open asset failed", Toast.LENGTH_SHORT)
-					.show();
-		}
 	}
 
 	/** Bluetooth接続失敗時のコールバック */

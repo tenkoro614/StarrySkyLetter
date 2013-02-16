@@ -1,7 +1,6 @@
 package jp.co.yahoo.hackday10.runaway;
 
 import java.io.InputStream;
-import java.io.Serializable;
 import java.util.Map;
 
 import jp.co.olympus.meg40.BluetoothNotEnabledException;
@@ -15,10 +14,10 @@ public class RunawayMegController implements MegListener {
 	private MegControll mMegCon; // グラフィック描画用
 	private AlertThread alertThread = null;
 
-	private static final int ALAERT_STATUS_ESCAPE = 0;
-	private static final int ALAERT_STATUS_SHAKE = 1;
-	private static final int ALAERT_STATUS_LOSE = 2;
-	private static final int ESCAPE_CNT = 10;
+	public static final int ALAERT_STATUS_ESCAPE = 0;
+	public static final int ALAERT_STATUS_SHAKE = 1;
+	public static final int ALAERT_STATUS_LOSE = 2;
+	public static final int ESCAPE_CNT = 10;
 
 	private int _alertStatus = ALAERT_STATUS_ESCAPE;
 	private int _old_x = 0;
@@ -71,32 +70,50 @@ public class RunawayMegController implements MegListener {
 	}
 
 	public void normal(int restTime) {
-		mMegCon.normalMode(restTime);
+		if (isConnected()) {
+			mMegCon.normalMode(restTime);
+		}
+	}
+
+	public void gameClear() {
+		if (isConnected()) {
+			mMegCon.gameClear();
+		}
 	}
 
 	public int alert(boolean catchFlg) {
-		if (alertThread == null) {
-			alertThread = new AlertThread(mMegCon);
-			alertThread.start();
-			// sensor開始
-			mMeg.startAccelerometer(Meg.SENSOR_MIDDLE);
-			_alertStatus = ALAERT_STATUS_SHAKE;
-			_shake = 0;
+		if (isConnected()) {
+			if (alertThread == null) {
+				alertThread = new AlertThread(mMegCon);
+				alertThread.start();
+				// sensor開始
+				mMeg.startAccelerometer(Meg.SENSOR_MIDDLE);
+				_alertStatus = ALAERT_STATUS_SHAKE;
+				_shake = 0;
+			}
+			if (catchFlg && _alertStatus == ALAERT_STATUS_SHAKE) {
+				stopAlert();
+				mMegCon.gameOver();
+				return ALAERT_STATUS_LOSE;
+			}
 		}
-		if (catchFlg && _alertStatus == ALAERT_STATUS_SHAKE) {
-			return ALAERT_STATUS_LOSE;
-		}
-		return _alertStatus;
-
+		return getAlertStatus();
 	}
 
 	public void stopAlert() {
-		if (alertThread != null) {
-			alertThread.alertStop();
-			alertThread = null;
-			mMeg.stopAccelerometer();
-			_old_x = 0;
+		if (isConnected()) {
+			if (alertThread != null) {
+				alertThread.alertStop();
+				_alertStatus = ALAERT_STATUS_ESCAPE;
+				alertThread = null;
+				mMeg.stopAccelerometer();
+				_old_x = 0;
+			}
 		}
+	}
+
+	public int getAlertStatus() {
+		return _alertStatus;
 	}
 
 	/** 加速度データ受信時のコールバック */
@@ -106,11 +123,8 @@ public class RunawayMegController implements MegListener {
 		if ((_old_x < 0 && x >= 0) || (_old_x >= 0 && x < 0)) {
 			_shake++;
 		}
-		if (_shake >= ESCAPE_CNT) {
+		if (getAlertStatus() == ALAERT_STATUS_SHAKE && _shake >= ESCAPE_CNT) {
 			stopAlert();
-			_alertStatus = ALAERT_STATUS_ESCAPE;
-		} else {
-			_alertStatus = ALAERT_STATUS_SHAKE;
 		}
 		_old_x = x;
 	}

@@ -29,6 +29,10 @@
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
 		        android:text="alert" />
+		<Button android:id="@+id/bAlert2"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:text="alert2" />
 		<Button android:id="@+id/bAlertStop"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"

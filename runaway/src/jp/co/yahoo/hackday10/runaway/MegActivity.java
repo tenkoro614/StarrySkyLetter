@@ -10,6 +10,7 @@ import jp.co.olympus.meg40.Meg;
 import jp.co.olympus.meg40.MegListener;
 import jp.co.olympus.meg40.MegStatus;
 import jp.co.yahoo.hackday10.runaway.R.id;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetManager;
@@ -18,11 +19,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+@SuppressLint("UseSparseArrays")
 public class MegActivity extends Activity implements MegListener {
 	private Meg mMeg; // MEGへのコマンド送信を行うインスタンス
 	private MegControll mMegCon; // グラフィック描画用
 	private NormalThread normalThread = null;
-	private AlertThread alertThread = null;
+	private RunawayMegController megController;
 
 	// Intent request codes
 	private static final int REQUEST_CONNECT_DEVICE = 1; // MEGへの接続要求
@@ -54,13 +56,15 @@ public class MegActivity extends Activity implements MegListener {
 		// }
 		// }
 		// });
+		megConnect();
+
 		// Normal
 		Button bNormal = (Button) findViewById(id.bNormal);
 		bNormal.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (normalThread == null) {
-					normalThread = new NormalThread(mMegCon, 100000); // milisec
+					normalThread = new NormalThread(megController, 100000); // milisec
 					normalThread.start();
 				}
 			}
@@ -70,10 +74,15 @@ public class MegActivity extends Activity implements MegListener {
 		bAlert.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (alertThread == null) {
-					alertThread = new AlertThread(mMegCon);
-					alertThread.start();
-				}
+				megController.alert(false);
+			}
+		});
+		// Alert
+		Button bAlert2 = (Button) findViewById(id.bAlert2);
+		bAlert2.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				megController.alert(true);
 			}
 		});
 		// AlertStop
@@ -81,32 +90,16 @@ public class MegActivity extends Activity implements MegListener {
 		bAlertStop.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (alertThread != null) {
-					alertThread.alertStop();
-					alertThread = null;
-				}
+				megController.stopAlert();
 			}
 		});
 
-		_megConnect();
-		try {
-			AssetManager am = getResources().getAssets();
-			Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
-			map.put(Integer.valueOf(2000), am.open("alert1.png"));
-			map.put(Integer.valueOf(2001), am.open("alert2.png"));
-			map.put(Integer.valueOf(2003), am.open("youlose.png"));
-			map.put(Integer.valueOf(10000), am.open("normal.png"));
-			mMegCon.init(map);
-		} catch (Exception e) {
-			Toast.makeText(MegActivity.this, "open asset failed",
-					Toast.LENGTH_SHORT).show();
-		}
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		_megDisconnected();
+		megDisconnected();
 	}
 
 	// 他のアクティビティから結果を受信したときのコールバック
@@ -126,6 +119,20 @@ public class MegActivity extends Activity implements MegListener {
 				mMeg.connect(address);
 				// このメソッドからはすぐに返ってくる。接続に成功するとonMegConnectedが、
 				// 失敗するとonMegConnectionFailedが呼び出される
+				try {
+					Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
+					AssetManager am = getResources().getAssets();
+					map.put(Integer.valueOf(2000), am.open("alert1.png"));
+					map.put(Integer.valueOf(2001), am.open("alert2.png"));
+					map.put(Integer.valueOf(2003), am.open("youlose.png"));
+					map.put(Integer.valueOf(10000), am.open("normal.png"));
+					mMegCon.init(map);
+					megController = new RunawayMegController();
+					megController.init();
+				} catch (Exception e) {
+					Toast.makeText(this, "open asset failed",
+							Toast.LENGTH_SHORT).show();
+				}
 			}
 			break;
 
@@ -143,7 +150,7 @@ public class MegActivity extends Activity implements MegListener {
 		}
 	}
 
-	private void _megConnect() {
+	private void megConnect() {
 		// Bluetooth接続できるかどうかチェックする
 		// 接続できなければ、アプリを終了
 		if (mMeg == null) {
@@ -182,18 +189,11 @@ public class MegActivity extends Activity implements MegListener {
 		}
 	}
 
-	private void _megDisconnected() {
+	private void megDisconnected() {
 		// mMegは非null、かつ、接続済み
 		if (mMeg != null && mMeg.isConnected()) {
 			mMeg.disconnect();
 		}
-	}
-
-	private boolean _isMegConnected() {
-		if (mMeg == null || !mMeg.isConnected()) {
-			return false;
-		}
-		return true;
 	}
 
 	// 以下、MEGのコールバック(MegListenerのメソッド)
@@ -293,15 +293,11 @@ public class MegActivity extends Activity implements MegListener {
 	/** コンテキスト設定受信時のコールバック */
 	@Override
 	public void onMegSetContext(int ret) {
-		// クリアカラー設定、フォントサイズ指定、フォント表示色設定をすると、MEGからの応答として
-		// このメソッドが呼ばれる。
-		// ここでは結果を表示しているが、特に何かをする必要はない
-		Toast.makeText(this, ret == 1 ? "OK" : "NG", Toast.LENGTH_SHORT).show();
 	}
 
 	/** Image削除受信時のコールバック */
 	@Override
 	public void onMegDeleteImage(int ret) {
 	}
-	
+
 }
