@@ -1,18 +1,24 @@
 package jp.co.yahoo.hackday10.runaway;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
 
 import android.app.Service;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Binder;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Message;
 
 public class RunawayService extends Service {
 
 	private long mStartTime = 0;
 	private long mEndTime = 0;
 	private int mEnd = END_RUNNING;
+	private HashSet<Integer> mEncountedHunter;
 	/**
 	 * サーバーと同期する間隔（秒）
 	 */
@@ -37,6 +43,7 @@ public class RunawayService extends Service {
 		super.onCreate();
 		mStartTime = 0;
 		mEndTime = 0;
+		mEncountedHunter = new HashSet<Integer>();
 	}
 	
 	@Override
@@ -83,19 +90,56 @@ public class RunawayService extends Service {
 		task.execute();
 	}
 	
+	/**
+	 * API呼び出して色々
+	 */
 	private void callApi() {
-		
+		final Handler handler = new Handler() {
+			@Override
+			public void handleMessage(Message msg) {
+				super.handleMessage(msg);
+				if (msg.what == 0) {
+					//
+				}
+			}
+		};
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				onEncount();
+				// 返却する
+				handler.sendEmptyMessage(1);
+				
+			}
+		}).start();
 	}
 	
-	private void onEncount() {
-		
+	/**
+	 * エンカウントした時呼ばれる
+	 * @return 振り切ったかどうか
+	 */
+	private int onEncount() {
+		return 0;
 	}
 	
 	/**
 	 * カウントダウン画面を呼び出す
 	 */
 	private void callCountDown() {
-		;
+		if (mEncountedHunter.size() > 0) {
+			//エンカウント中は呼び出さない
+			return;
+		}
+		
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				//カウントしてね
+				
+			}
+		}).start();
 	}
 	
 	/**
