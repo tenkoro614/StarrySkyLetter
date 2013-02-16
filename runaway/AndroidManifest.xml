@@ -16,13 +16,8 @@
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
         <activity
-            android:name="jp.co.yahoo.hackday10.runaway.MainActivity"
+            android:name="jp.co.yahoo.hackday10.runaway.MegActivity"
             android:label="@string/app_name" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity android:name="jp.co.yahoo.hackday10.runaway.DeviceListActivity"
                   android:label="@string/select_device"
