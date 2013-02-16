@@ -16,6 +16,7 @@ public class AlertThread extends Thread {
 				mMegCon.hunterAlert();
 			}
 		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 

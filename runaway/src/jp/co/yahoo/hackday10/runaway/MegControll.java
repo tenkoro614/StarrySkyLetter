@@ -1,7 +1,7 @@
 package jp.co.yahoo.hackday10.runaway;
 
 import java.io.InputStream;
-import java.util.List;
+import java.util.Map;
 
 import jp.co.olympus.meg40.Meg;
 import jp.co.olympus.meg40.MegGraphics;
@@ -17,23 +17,34 @@ public class MegControll {
 		mMegGraphics = new MegGraphics(mMeg);
 	}
 
-	public void init(List<InputStream> l) throws Exception {
-		mMegGraphics.begin();
+	public void init(Map<Integer, InputStream> map) throws Exception {
 		clearScreen();
-		int id = 2000;
-		for (InputStream is : l) {
-			removeImage(id);
-			registerImage(id, is);
-			id++;
+		mMegGraphics.begin();
+		for (Map.Entry<Integer, InputStream> e : map.entrySet()) {
+			removeImage(e.getKey().intValue());
+			registerImage(e.getKey().intValue(), e.getValue());
 		}
 		mMegGraphics.end();
 	}
 
+	public void normalMode(boolean begin) {
+		imageDraw(10000, 0, 0, begin);
+	}
+
 	public void hunterAlert() throws Exception {
-		imageDraw(2000, 0, 0);
+		imageDraw(2000, 0, 0, true);
 		Thread.sleep(200);
-		imageDraw(2001, 0, 0);
+		imageDraw(2001, 0, 0, true);
 		Thread.sleep(200);
+	}
+
+	public void countDownText(long millisUntilFinished) {
+		mMegGraphics.begin();
+		clearScreen();
+		normalMode(false);
+		setFont(35, 0xffffffff);
+		textDraw(130, 135, (millisUntilFinished / 1000) + "秒");
+		mMegGraphics.end();
 	}
 
 	public void clearScreen() {
@@ -58,9 +69,13 @@ public class MegControll {
 		mMegGraphics.removeImage(id);
 	}
 
-	public void imageDraw(int id, int x, int y) {
-		mMegGraphics.begin();
+	public void imageDraw(int id, int x, int y, boolean begin) {
+		if (begin) {
+			mMegGraphics.begin();
+		}
 		mMegGraphics.drawImage(id, x, y, new Rect(0, 0, 320, 270));
-		mMegGraphics.end();
+		if (begin) {
+			mMegGraphics.end();
+		}
 	}
 }

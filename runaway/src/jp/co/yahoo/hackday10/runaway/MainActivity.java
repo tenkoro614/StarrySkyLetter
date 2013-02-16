@@ -1,8 +1,8 @@
 package jp.co.yahoo.hackday10.runaway;
 
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import jp.co.olympus.meg40.BluetoothNotEnabledException;
 import jp.co.olympus.meg40.BluetoothNotFoundException;
@@ -12,7 +12,9 @@ import jp.co.olympus.meg40.MegStatus;
 import jp.co.yahoo.hackday10.runaway.R.id;
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.AssetManager;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -20,7 +22,8 @@ import android.widget.Toast;
 public class MainActivity extends Activity implements MegListener {
 	private Meg mMeg; // MEGへのコマンド送信を行うインスタンス
 	private MegControll mMegCon; // グラフィック描画用
-	private AlertThread alertThread;
+	private NormalThread normalThread = null;
+	private AlertThread alertThread = null;
 
 	// Intent request codes
 	private static final int REQUEST_CONNECT_DEVICE = 1; // MEGへの接続要求
@@ -32,22 +35,42 @@ public class MainActivity extends Activity implements MegListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		// Connect
 		Button bConn = (Button) findViewById(id.bConnect);
 		bConn.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				_megConnect();
 				try {
-					List<InputStream> l = new ArrayList<InputStream>();
-					l.add(getResources().getAssets().open("alert1.png"));
-					l.add(getResources().getAssets().open("alert2.png"));
-					mMegCon.init(l);
+					AssetManager am = getResources().getAssets();
+					Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
+					map.put(Integer.valueOf(2000), am.open("alert1.png"));
+					map.put(Integer.valueOf(2001), am.open("alert2.png"));
+					map.put(Integer.valueOf(2003), am.open("youlose.png"));
+					map.put(Integer.valueOf(10000), am.open("normal.png"));
+					mMegCon.init(map);
 				} catch (Exception e) {
 					Toast.makeText(MainActivity.this, "open asset failed",
 							Toast.LENGTH_SHORT).show();
 				}
 			}
 		});
+		// Normal
+		Button bNormal = (Button) findViewById(id.bNormal);
+		bNormal.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (normalThread == null) {
+//					mMegCon.normalMode();
+//					Toast.makeText(MainActivity.this, "normal",
+//							Toast.LENGTH_SHORT).show();
+
+					normalThread = new NormalThread(mMegCon, 100000); // milisec
+					normalThread.start();
+				}
+			}
+		});
+		// Alert
 		Button bAlert = (Button) findViewById(id.bAlert);
 		bAlert.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -58,12 +81,15 @@ public class MainActivity extends Activity implements MegListener {
 				}
 			}
 		});
+		// AlertStop
 		Button bAlertStop = (Button) findViewById(id.bAlertStop);
 		bAlertStop.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				alertThread.alertStop();
-				alertThread = null;
+				if (alertThread != null) {
+					alertThread.alertStop();
+					alertThread = null;
+				}
 			}
 		});
 	}
@@ -267,6 +293,6 @@ public class MainActivity extends Activity implements MegListener {
 	/** Image削除受信時のコールバック */
 	@Override
 	public void onMegDeleteImage(int ret) {
-
+		Toast.makeText(this, ret == 1 ? "delete OK" : "delete NG", Toast.LENGTH_SHORT).show();
 	}
 }

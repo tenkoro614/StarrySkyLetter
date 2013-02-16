@@ -21,6 +21,10 @@
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
 		        android:text="connect" />
+		<Button android:id="@+id/bNormal"
+		        android:layout_width="fill_parent"
+		        android:layout_height="wrap_content"
+		        android:text="normal" />
 		<Button android:id="@+id/bAlert"
 		        android:layout_width="fill_parent"
 		        android:layout_height="wrap_content"
