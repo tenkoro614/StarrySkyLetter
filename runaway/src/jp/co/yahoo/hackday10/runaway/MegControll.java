@@ -27,23 +27,30 @@ public class MegControll {
 		mMegGraphics.end();
 	}
 
-	public void normalMode(boolean begin) {
-		imageDraw(10000, 0, 0, begin);
+	public void normalMode(long millisUntilFinished) {
+		mMegGraphics.begin();
+		clearScreen();
+		imageDraw(10000, 0, 0);
+		setFont(35, 0xffffffff);
+		textDraw(130, 135, (millisUntilFinished / 1000) + "秒");
+		mMegGraphics.end();
 	}
 
 	public void hunterAlert() throws Exception {
-		imageDraw(2000, 0, 0, true);
+		mMegGraphics.begin();
+		imageDraw(2000, 0, 0);
+		mMegGraphics.end();
 		Thread.sleep(200);
-		imageDraw(2001, 0, 0, true);
+		mMegGraphics.begin();
+		imageDraw(2001, 0, 0);
+		mMegGraphics.end();
 		Thread.sleep(200);
 	}
 
-	public void countDownText(long millisUntilFinished) {
+	public void gameClear() {
 		mMegGraphics.begin();
 		clearScreen();
-		normalMode(false);
-		setFont(35, 0xffffffff);
-		textDraw(130, 135, (millisUntilFinished / 1000) + "秒");
+		imageDraw(10000, 0, 0);
 		mMegGraphics.end();
 	}
 
@@ -69,13 +76,7 @@ public class MegControll {
 		mMegGraphics.removeImage(id);
 	}
 
-	public void imageDraw(int id, int x, int y, boolean begin) {
-		if (begin) {
-			mMegGraphics.begin();
-		}
+	public void imageDraw(int id, int x, int y) {
 		mMegGraphics.drawImage(id, x, y, new Rect(0, 0, 320, 270));
-		if (begin) {
-			mMegGraphics.end();
-		}
 	}
 }

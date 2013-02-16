@@ -14,7 +14,6 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Bundle;
-import android.os.CountDownTimer;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
@@ -36,35 +35,31 @@ public class MegActivity extends Activity implements MegListener {
 		setContentView(R.layout.activity_main);
 
 		// Connect
-		Button bConn = (Button) findViewById(id.bConnect);
-		bConn.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				_megConnect();
-				try {
-					AssetManager am = getResources().getAssets();
-					Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
-					map.put(Integer.valueOf(2000), am.open("alert1.png"));
-					map.put(Integer.valueOf(2001), am.open("alert2.png"));
-					map.put(Integer.valueOf(2003), am.open("youlose.png"));
-					map.put(Integer.valueOf(10000), am.open("normal.png"));
-					mMegCon.init(map);
-				} catch (Exception e) {
-					Toast.makeText(MegActivity.this, "open asset failed",
-							Toast.LENGTH_SHORT).show();
-				}
-			}
-		});
+//		Button bConn = (Button) findViewById(id.bConnect);
+//		bConn.setOnClickListener(new View.OnClickListener() {
+//			@Override
+//			public void onClick(View v) {
+//				_megConnect();
+//				try {
+//					AssetManager am = getResources().getAssets();
+//					Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
+//					map.put(Integer.valueOf(2000), am.open("alert1.png"));
+//					map.put(Integer.valueOf(2001), am.open("alert2.png"));
+//					map.put(Integer.valueOf(2003), am.open("youlose.png"));
+//					map.put(Integer.valueOf(10000), am.open("normal.png"));
+//					mMegCon.init(map);
+//				} catch (Exception e) {
+//					Toast.makeText(MegActivity.this, "open asset failed",
+//							Toast.LENGTH_SHORT).show();
+//				}
+//			}
+//		});
 		// Normal
 		Button bNormal = (Button) findViewById(id.bNormal);
 		bNormal.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				if (normalThread == null) {
-//					mMegCon.normalMode();
-//					Toast.makeText(MainActivity.this, "normal",
-//							Toast.LENGTH_SHORT).show();
-
 					normalThread = new NormalThread(mMegCon, 100000); // milisec
 					normalThread.start();
 				}
@@ -92,6 +87,20 @@ public class MegActivity extends Activity implements MegListener {
 				}
 			}
 		});
+
+		_megConnect();
+		try {
+			AssetManager am = getResources().getAssets();
+			Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
+			map.put(Integer.valueOf(2000), am.open("alert1.png"));
+			map.put(Integer.valueOf(2001), am.open("alert2.png"));
+			map.put(Integer.valueOf(2003), am.open("youlose.png"));
+			map.put(Integer.valueOf(10000), am.open("normal.png"));
+			mMegCon.init(map);
+		} catch (Exception e) {
+			Toast.makeText(MegActivity.this, "open asset failed",
+					Toast.LENGTH_SHORT).show();
+		}
 	}
 
 	@Override
@@ -293,6 +302,7 @@ public class MegActivity extends Activity implements MegListener {
 	/** Image削除受信時のコールバック */
 	@Override
 	public void onMegDeleteImage(int ret) {
-		Toast.makeText(this, ret == 1 ? "delete OK" : "delete NG", Toast.LENGTH_SHORT).show();
+		Toast.makeText(this, ret == 1 ? "delete OK" : "delete NG",
+				Toast.LENGTH_SHORT).show();
 	}
 }

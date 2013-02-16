@@ -13,7 +13,7 @@ public class NormalThread extends CountDownTimer {
 
 	public void onTick(long millisUntilFinished) {
 		if (displayFlg) {
-			mMegCon.countDownText(millisUntilFinished);
+			mMegCon.normalMode(millisUntilFinished);
 		}
 	}
 
