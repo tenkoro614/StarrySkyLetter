@@ -8,10 +8,14 @@ public class AlertThread extends Thread {
 		mMegCon = mc;
 	}
 
+	/**
+	 * @see java.lang.Thread#run()
+	 */
 	@Override
 	public void run() {
 		alertFlg = true;
 		try {
+			// アラート状態の間、出し続ける
 			while (alertFlg) {
 				mMegCon.hunterAlert();
 			}
@@ -20,6 +24,9 @@ public class AlertThread extends Thread {
 		}
 	}
 
+	/**
+	 * アラート停止
+	 */
 	public void alertStop() {
 		alertFlg = false;
 	}
