@@ -17,25 +17,37 @@ public class MegControll {
 		mMegGraphics = new MegGraphics(mMeg);
 	}
 
+	/**
+	 * MEG初期化
+	 */
 	public void init(Map<Integer, InputStream> map) throws Exception {
-		clearScreen();
 		mMegGraphics.begin();
 		for (Map.Entry<Integer, InputStream> e : map.entrySet()) {
-			removeImage(e.getKey().intValue());
+			// removeImage(e.getKey().intValue());
 			registerImage(e.getKey().intValue(), e.getValue());
 		}
+		normalMode(0);
 		mMegGraphics.end();
 	}
 
-	public void normalMode(long millisUntilFinished) {
+	/**
+	 * 通常モード
+	 */
+	public void normalMode(long restTime) {
 		mMegGraphics.begin();
 		clearScreen();
 		imageDraw(10000, 0, 0);
 		setFont(35, 0xffffffff);
-		textDraw(130, 135, (millisUntilFinished / 1000) + "秒");
+		textDraw(130, 135, restTime + "秒");
 		mMegGraphics.end();
 	}
 
+	/**
+	 * ハンターアラート
+	 * 
+	 * @throws Exception
+	 *             Exception
+	 */
 	public void hunterAlert() throws Exception {
 		mMegGraphics.begin();
 		imageDraw(2000, 0, 0);
@@ -47,6 +59,9 @@ public class MegControll {
 		Thread.sleep(200);
 	}
 
+	/**
+	 * ゲームクリア
+	 */
 	public void gameClear() {
 		mMegGraphics.begin();
 		clearScreen();
@@ -54,29 +69,29 @@ public class MegControll {
 		mMegGraphics.end();
 	}
 
-	public void clearScreen() {
+	private void clearScreen() {
 		mMegGraphics.clearScreen();
 	}
 
-	public void setFont(int size, int color) {
+	private void setFont(int size, int color) {
 		mMegGraphics.setFontSize(size);
 		mMegGraphics.setFontColor(color);
 	}
 
-	public void textDraw(int x, int y, String text) {
+	private void textDraw(int x, int y, String text) {
 		mMegGraphics.drawString(x, y, text);
 	}
 
-	public void registerImage(int id, InputStream is) throws Exception {
+	private void registerImage(int id, InputStream is) throws Exception {
 		Bitmap bm = BitmapFactory.decodeStream(is);
 		mMegGraphics.registerImage(id, bm);
 	}
 
-	public void removeImage(int id) {
+	private void removeImage(int id) {
 		mMegGraphics.removeImage(id);
 	}
 
-	public void imageDraw(int id, int x, int y) {
+	private void imageDraw(int id, int x, int y) {
 		mMegGraphics.drawImage(id, x, y, new Rect(0, 0, 320, 270));
 	}
 }
