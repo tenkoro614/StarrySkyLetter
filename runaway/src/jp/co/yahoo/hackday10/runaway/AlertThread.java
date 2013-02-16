@@ -1,45 +1,25 @@
 package jp.co.yahoo.hackday10.runaway;
 
 public class AlertThread extends Thread {
+	private boolean alertFlg = true;
+	private MegControll mMegCon;
 
-	public AlertThread() {
-		// TODO 自動生成されたコンストラクター・スタブ
+	public AlertThread(MegControll mc) {
+		mMegCon = mc;
 	}
 
-	public AlertThread(Runnable runnable) {
-		super(runnable);
-		// TODO 自動生成されたコンストラクター・スタブ
+	@Override
+	public void run() {
+		alertFlg = true;
+		try {
+			while (alertFlg) {
+				mMegCon.hunterAlert();
+			}
+		} catch (Exception e) {
+		}
 	}
 
-	public AlertThread(String threadName) {
-		super(threadName);
-		// TODO 自動生成されたコンストラクター・スタブ
+	public void alertStop() {
+		alertFlg = false;
 	}
-
-	public AlertThread(Runnable runnable, String threadName) {
-		super(runnable, threadName);
-		// TODO 自動生成されたコンストラクター・スタブ
-	}
-
-	public AlertThread(ThreadGroup group, Runnable runnable) {
-		super(group, runnable);
-		// TODO 自動生成されたコンストラクター・スタブ
-	}
-
-	public AlertThread(ThreadGroup group, String threadName) {
-		super(group, threadName);
-		// TODO 自動生成されたコンストラクター・スタブ
-	}
-
-	public AlertThread(ThreadGroup group, Runnable runnable, String threadName) {
-		super(group, runnable, threadName);
-		// TODO 自動生成されたコンストラクター・スタブ
-	}
-
-	public AlertThread(ThreadGroup group, Runnable runnable, String threadName,
-			long stackSize) {
-		super(group, runnable, threadName, stackSize);
-		// TODO 自動生成されたコンストラクター・スタブ
-	}
-
 }

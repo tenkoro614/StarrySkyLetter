@@ -21,7 +21,6 @@ public class MainActivity extends Activity implements MegListener {
 	private Meg mMeg; // MEGへのコマンド送信を行うインスタンス
 	private MegControll mMegCon; // グラフィック描画用
 	private AlertThread alertThread;
-	private boolean alertFlag = false;
 
 	// Intent request codes
 	private static final int REQUEST_CONNECT_DEVICE = 1; // MEGへの接続要求
@@ -53,29 +52,17 @@ public class MainActivity extends Activity implements MegListener {
 		bAlert.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				alertFlag = true;
-				alertThread = new AlertThread(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							while (alertFlag) {
-								mMegCon.hunterAlert();
-							}
-						} catch (Exception e) {
-							Toast.makeText(MainActivity.this,
-									"alert thread falid", Toast.LENGTH_SHORT)
-									.show();
-						}
-					}
-				});
-				alertThread.start();
+				if (alertThread == null) {
+					alertThread = new AlertThread(mMegCon);
+					alertThread.start();
+				}
 			}
 		});
 		Button bAlertStop = (Button) findViewById(id.bAlertStop);
 		bAlertStop.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				alertFlag = false;
+				alertThread.alertStop();
 				alertThread = null;
 			}
 		});
