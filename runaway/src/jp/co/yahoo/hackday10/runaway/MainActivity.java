@@ -1,5 +1,15 @@
 package jp.co.yahoo.hackday10.runaway;
 
+import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
+
+import jp.co.olympus.meg40.BluetoothNotEnabledException;
+import jp.co.olympus.meg40.BluetoothNotFoundException;
+import jp.co.olympus.meg40.Meg;
+import jp.co.olympus.meg40.MegListener;
+import jp.co.olympus.meg40.MegStatus;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,7 +25,12 @@ import android.widget.TextView;
 
 public class MainActivity extends Activity {
 	final static private String TAG = MainActivity.class.getName();
-	
+	private Meg mMeg; // MEG
+	private MegControll mMegCon; // グラフィック描画用
+
+	// Intent request codes
+	private static final int REQUEST_CONNECT_DEVICE = 1; // MEGへの接続要求
+
 	private ImageView mButton;
 	private ImageView mSplash;
 	private SeekBar mAreaSeek;

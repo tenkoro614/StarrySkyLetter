@@ -10,23 +10,36 @@ import jp.co.olympus.meg40.Meg;
 import jp.co.olympus.meg40.MegListener;
 import jp.co.olympus.meg40.MegStatus;
 import jp.co.yahoo.hackday10.runaway.R.id;
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.res.AssetManager;
+import android.media.AudioManager;
+import android.media.SoundPool;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+@SuppressLint("UseSparseArrays")
 public class MegActivity extends Activity implements MegListener {
 	private Meg mMeg; // MEGへのコマンド送信を行うインスタンス
 	private MegControll mMegCon; // グラフィック描画用
 	private NormalThread normalThread = null;
-	private AlertThread alertThread = null;
+	private RunawayMegController megController;
+	private SoundPool sp;
+	private int soundIdAlert;
+	private int soundIdExp;
+	private int status = -1;
 
 	// Intent request codes
 	private static final int REQUEST_CONNECT_DEVICE = 1; // MEGへの接続要求
 	private static final int REQUEST_ENABLE_BT = 2;
+
+	private static final int STATUS_CONNECT = 0;
+	private static final int STATUS_NORMAL = 1;
+	private static final int STATUS_ALERT = 2;
+	private static final int STATUS_LOSE = 3;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -34,35 +47,67 @@ public class MegActivity extends Activity implements MegListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_main);
 
+		sp = new SoundPool(2, AudioManager.STREAM_MUSIC, 0);
+		soundIdAlert = sp.load(this, R.raw.alarm, 1);
+		soundIdExp = sp.load(this, R.raw.exp, 1);
+
 		// Connect
-//		Button bConn = (Button) findViewById(id.bConnect);
-//		bConn.setOnClickListener(new View.OnClickListener() {
-//			@Override
-//			public void onClick(View v) {
-//				_megConnect();
-//				try {
-//					AssetManager am = getResources().getAssets();
-//					Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
-//					map.put(Integer.valueOf(2000), am.open("alert1.png"));
-//					map.put(Integer.valueOf(2001), am.open("alert2.png"));
-//					map.put(Integer.valueOf(2003), am.open("youlose.png"));
-//					map.put(Integer.valueOf(10000), am.open("normal.png"));
-//					mMegCon.init(map);
-//				} catch (Exception e) {
-//					Toast.makeText(MegActivity.this, "open asset failed",
-//							Toast.LENGTH_SHORT).show();
-//				}
-//			}
-//		});
+		Button bConn = (Button) findViewById(id.bConnect);
+		bConn.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (status < STATUS_CONNECT) {
+					megConnect();
+					status = STATUS_CONNECT;
+				}
+				try {
+					Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
+					AssetManager am = getResources().getAssets();
+					map.put(Integer.valueOf(MegControll.MEG_FILE_ID_ALERT1),
+							am.open("alert1.png"));
+					map.put(Integer.valueOf(MegControll.MEG_FILE_ID_ALERT2),
+							am.open("alert2.png"));
+					map.put(Integer.valueOf(MegControll.MEG_FILE_ID_LOSE),
+							am.open("youlose.png"));
+					map.put(Integer.valueOf(MegControll.MEG_FILE_ID_NORMAL),
+							am.open("normal.png"));
+					mMegCon.init(map);
+				} catch (Exception e) {
+					Toast.makeText(MegActivity.this, "open asset failed",
+							Toast.LENGTH_SHORT).show();
+				}
+			}
+		});
+
 		// Normal
 		Button bNormal = (Button) findViewById(id.bNormal);
 		bNormal.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (normalThread == null) {
-					normalThread = new NormalThread(mMegCon, 100000); // milisec
-					normalThread.start();
+				if (status != STATUS_CONNECT) {
+					return;
 				}
+				if (normalThread == null) {
+					normalThread = new NormalThread(getMegController(), 200000); // milisec
+					normalThread.start();
+				} else {
+					normalThread.displayRestart();
+				}
+				status = STATUS_NORMAL;
+			}
+		});
+		// Normal
+		Button bNormalStop = (Button) findViewById(id.bNormalStop);
+		bNormalStop.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (status < STATUS_CONNECT) {
+					return;
+				}
+				if (normalThread != null) {
+					normalThread.displayStop();
+				}
+				status = STATUS_CONNECT;
 			}
 		});
 		// Alert
@@ -70,10 +115,16 @@ public class MegActivity extends Activity implements MegListener {
 		bAlert.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (alertThread == null) {
-					alertThread = new AlertThread(mMegCon);
-					alertThread.start();
+				if (status != STATUS_CONNECT) {
+					return;
 				}
+				if (normalThread != null) {
+					normalThread.displayStop();
+				}
+				getMegController().alert(false);
+				sp.stop(soundIdExp);
+				sp.play(soundIdAlert, 1.0F, 1.0F, 1, 20, 1.0F);
+				status = STATUS_ALERT;
 			}
 		});
 		// AlertStop
@@ -81,32 +132,37 @@ public class MegActivity extends Activity implements MegListener {
 		bAlertStop.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				if (alertThread != null) {
-					alertThread.alertStop();
-					alertThread = null;
+				if (status < STATUS_CONNECT) {
+					return;
 				}
+				getMegController().stopAlert();
+				sp.stop(soundIdAlert);
+				status = STATUS_CONNECT;
 			}
 		});
-
-		_megConnect();
-		try {
-			AssetManager am = getResources().getAssets();
-			Map<Integer, InputStream> map = new HashMap<Integer, InputStream>();
-			map.put(Integer.valueOf(2000), am.open("alert1.png"));
-			map.put(Integer.valueOf(2001), am.open("alert2.png"));
-			map.put(Integer.valueOf(2003), am.open("youlose.png"));
-			map.put(Integer.valueOf(10000), am.open("normal.png"));
-			mMegCon.init(map);
-		} catch (Exception e) {
-			Toast.makeText(MegActivity.this, "open asset failed",
-					Toast.LENGTH_SHORT).show();
-		}
+		// Game over
+		Button bGameover = (Button) findViewById(id.bGameover);
+		bGameover.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				if (status < STATUS_CONNECT) {
+					return;
+				}
+				if (normalThread != null) {
+					normalThread.displayStop();
+				}
+				getMegController().gameOver();
+				sp.stop(soundIdAlert);
+				sp.play(soundIdExp, 1.0F, 1.0F, 0, 0, 1.0F);
+				status = STATUS_CONNECT;
+			}
+		});
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		_megDisconnected();
+		megDisconnected();
 	}
 
 	// 他のアクティビティから結果を受信したときのコールバック
@@ -143,7 +199,7 @@ public class MegActivity extends Activity implements MegListener {
 		}
 	}
 
-	private void _megConnect() {
+	private void megConnect() {
 		// Bluetooth接続できるかどうかチェックする
 		// 接続できなければ、アプリを終了
 		if (mMeg == null) {
@@ -182,18 +238,19 @@ public class MegActivity extends Activity implements MegListener {
 		}
 	}
 
-	private void _megDisconnected() {
+	private void megDisconnected() {
 		// mMegは非null、かつ、接続済み
 		if (mMeg != null && mMeg.isConnected()) {
 			mMeg.disconnect();
 		}
 	}
 
-	private boolean _isMegConnected() {
-		if (mMeg == null || !mMeg.isConnected()) {
-			return false;
+	private RunawayMegController getMegController() {
+		if (megController == null) {
+			megController = new RunawayMegController(mMegCon);
+			megController.init();
 		}
-		return true;
+		return megController;
 	}
 
 	// 以下、MEGのコールバック(MegListenerのメソッド)
@@ -293,10 +350,6 @@ public class MegActivity extends Activity implements MegListener {
 	/** コンテキスト設定受信時のコールバック */
 	@Override
 	public void onMegSetContext(int ret) {
-		// クリアカラー設定、フォントサイズ指定、フォント表示色設定をすると、MEGからの応答として
-		// このメソッドが呼ばれる。
-		// ここでは結果を表示しているが、特に何かをする必要はない
-		Toast.makeText(this, ret == 1 ? "OK" : "NG", Toast.LENGTH_SHORT).show();
 	}
 
 	/** Image削除受信時のコールバック */
@@ -305,4 +358,5 @@ public class MegActivity extends Activity implements MegListener {
 		Toast.makeText(this, ret == 1 ? "delete OK" : "delete NG",
 				Toast.LENGTH_SHORT).show();
 	}
+
 }
