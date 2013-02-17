@@ -11,6 +11,10 @@ import android.graphics.Rect;
 
 public class MegControll {
 	private MegGraphics mMegGraphics; // グラフィック描画用
+	public static int MEG_FILE_ID_ALERT1 = 3000;
+	public static int MEG_FILE_ID_ALERT2 = 3001;
+	public static int MEG_FILE_ID_LOSE = 3002;
+	public static int MEG_FILE_ID_NORMAL = 3003;
 
 	public MegControll(Meg mMeg) {
 		// MEGのグラフィックス機能を使うクラスの生成
@@ -23,11 +27,11 @@ public class MegControll {
 	public void init(Map<Integer, InputStream> map) throws Exception {
 		mMegGraphics.begin();
 		for (Map.Entry<Integer, InputStream> e : map.entrySet()) {
-			// removeImage(e.getKey().intValue());
+			removeImage(e.getKey().intValue());
 			registerImage(e.getKey().intValue(), e.getValue());
 		}
-		normalMode(0);
 		mMegGraphics.end();
+//		normalMode(0);
 	}
 
 	/**
@@ -36,9 +40,17 @@ public class MegControll {
 	public void normalMode(long restTime) {
 		mMegGraphics.begin();
 		clearScreen();
-		imageDraw(10000, 0, 0);
+		imageDraw(MEG_FILE_ID_NORMAL, 0, 0);
 		setFont(35, 0xffffffff);
-		textDraw(130, 135, restTime + "秒");
+//		setFont(35, 0xff000000);
+		// 時間計算
+		int min = (int) (restTime / 60);
+		int sec = (int) (restTime % 60);
+		if (min <= 0) {
+			textDraw(140, 135, sec + "秒");
+		} else {
+			textDraw(130, 135, min + "分 " + sec + "秒");
+		}
 		mMegGraphics.end();
 	}
 
@@ -50,11 +62,11 @@ public class MegControll {
 	 */
 	public void hunterAlert() throws Exception {
 		mMegGraphics.begin();
-		imageDraw(2000, 0, 0);
+		imageDraw(MEG_FILE_ID_ALERT1, 0, 0);
 		mMegGraphics.end();
 		Thread.sleep(200);
 		mMegGraphics.begin();
-		imageDraw(2001, 0, 0);
+		imageDraw(MEG_FILE_ID_ALERT2, 0, 0);
 		mMegGraphics.end();
 		Thread.sleep(200);
 	}
@@ -65,7 +77,7 @@ public class MegControll {
 	public void gameClear() {
 		mMegGraphics.begin();
 		clearScreen();
-		imageDraw(10000, 0, 0);
+		imageDraw(MEG_FILE_ID_NORMAL, 0, 0);
 		mMegGraphics.end();
 	}
 
@@ -75,7 +87,7 @@ public class MegControll {
 	public void gameOver() {
 		mMegGraphics.begin();
 		clearScreen();
-		imageDraw(2003, 0, 0);
+		imageDraw(MEG_FILE_ID_LOSE, 0, 0);
 		mMegGraphics.end();
 	}
 

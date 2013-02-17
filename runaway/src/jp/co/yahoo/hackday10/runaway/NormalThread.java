@@ -23,6 +23,10 @@ public class NormalThread extends CountDownTimer {
 		megController.gameClear();
 	}
 
+	public void displayRestart() {
+		displayFlg = true;
+	}
+
 	public void displayStop() {
 		displayFlg = false;
 	}

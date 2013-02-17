@@ -8,6 +8,8 @@ import jp.co.olympus.meg40.BluetoothNotFoundException;
 import jp.co.olympus.meg40.Meg;
 import jp.co.olympus.meg40.MegListener;
 import jp.co.olympus.meg40.MegStatus;
+import android.media.AudioManager;
+import android.media.SoundPool;
 
 public class RunawayMegController implements MegListener {
 	private Meg mMeg; // MEGへのコマンド送信を行うインスタンス
@@ -26,6 +28,10 @@ public class RunawayMegController implements MegListener {
 	public RunawayMegController() {
 	}
 
+	public RunawayMegController(MegControll megcon) {
+		mMegCon = megcon;
+	}
+
 	public boolean init() {
 		// Bluetooth接続できるかどうかチェックする
 		if (mMeg == null) {
@@ -34,10 +40,12 @@ public class RunawayMegController implements MegListener {
 				// 最初のgetInstance呼び出しではインスタンス生成時に例外が投げられることがある
 				mMeg = Meg.getInstance();
 				// MEGのイベント監視のハンドラを登録
-				mMeg.registerMegListener(this);
+				// mMeg.registerMegListener(this);
 
 				// MEGの操作クラス
-				mMegCon = new MegControll(mMeg);
+				if (mMegCon == null) {
+					mMegCon = new MegControll(mMeg);
+				}
 			} catch (BluetoothNotFoundException e) {
 				return false;
 			} catch (BluetoothNotEnabledException e) {
@@ -81,13 +89,20 @@ public class RunawayMegController implements MegListener {
 		}
 	}
 
+	public void gameOver() {
+		if (isConnected()) {
+			stopAlert();
+			mMegCon.gameOver();
+		}
+	}
+
 	public int alert(boolean catchFlg) {
 		if (isConnected()) {
 			if (alertThread == null) {
 				alertThread = new AlertThread(mMegCon);
 				alertThread.start();
 				// sensor開始
-				mMeg.startAccelerometer(Meg.SENSOR_MIDDLE);
+				// mMeg.startAccelerometer(Meg.SENSOR_MIDDLE);
 				_alertStatus = ALAERT_STATUS_SHAKE;
 				_shake = 0;
 			}
@@ -106,7 +121,7 @@ public class RunawayMegController implements MegListener {
 				alertThread.alertStop();
 				_alertStatus = ALAERT_STATUS_ESCAPE;
 				alertThread = null;
-				mMeg.stopAccelerometer();
+				// mMeg.stopAccelerometer();
 				_old_x = 0;
 			}
 		}
