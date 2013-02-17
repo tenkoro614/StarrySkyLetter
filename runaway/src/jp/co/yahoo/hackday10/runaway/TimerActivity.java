@@ -5,6 +5,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
@@ -13,15 +14,10 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
 import android.view.animation.Animation;
-import android.view.animation.Animation.AnimationListener;
 import android.view.animation.AnimationSet;
 import android.view.animation.ScaleAnimation;
-import android.widget.Button;
-import android.widget.DigitalClock;
-import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 public class TimerActivity extends Activity {
@@ -30,13 +26,14 @@ public class TimerActivity extends Activity {
 	private TextView mHour;
 	private TextView mSec;
 	private long mTimes;
-	private long mRestTime;
 	private LinearLayout mTimerLayout;
 	private ImageView mCountDown;
 	private ImageView mGiveUpButton;
 	private LinearLayout mBg;
 	private RunawayService mService;
-	private int mCount;
+	private TextView mAlert;
+	private MediaPlayer mp_end;
+	private MediaPlayer mp;
 	
 	final private static int[] COUNT_IMAGES = {R.drawable.countdown_1, R.drawable.countdown_2, R.drawable.countdown_3};
 	
@@ -45,8 +42,7 @@ public class TimerActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		Log.d(TAG, "onCreate start");
 		setContentView(R.layout.timer);
-		
-		mTimes = getIntent().getExtras().getLong("TIMES");
+		if (getIntent().getExtras() != null) mTimes = getIntent().getExtras().getLong("TIMES");
 		mHour = (TextView)findViewById(R.id.textHour);
 		mSec = (TextView)findViewById(R.id.textSec);
 		
@@ -54,19 +50,23 @@ public class TimerActivity extends Activity {
 		mTimerLayout = (LinearLayout) findViewById(R.id.layoutTimer);
 		mCountDown = (ImageView) findViewById(R.id.imageCountDown);
 		mBg = (LinearLayout) findViewById(R.id.layoutBg);
+		mAlert = (TextView) findViewById(R.id.alert);
 		
 		mGiveUpButton.setVisibility(View.GONE);
 		mGiveUpButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
+				mService.setEnd(RunawayService.END_GIVEUP);
 				finish();
 			}
 		});
 		mTimerLayout.setVisibility(View.GONE);
 		mBg.setVisibility(View.GONE);
-		mRestTime = mTimes;
-		mCount = 4;
+
+		mp = MediaPlayer.create(this, R.raw.alarm);
+		mp.setLooping(true);
+		mp_end = MediaPlayer.create(this, R.raw.exp);
 	}
 
 	/**
@@ -85,6 +85,12 @@ public class TimerActivity extends Activity {
 			Log.d("ServiceConnection", "onServiceConnected start");
 			RunawayService.RunawayServiceBinder binder = (RunawayService.RunawayServiceBinder) service;
 			mService = binder.getService();
+			
+			if (mService.isStarted()) {
+				startTimer();
+			} else {
+				dispCount(3);
+			}
 		}
 	};
 	
@@ -92,13 +98,9 @@ public class TimerActivity extends Activity {
 	protected void onResume() {
 		super.onResume();
 		Log.d(TAG, "onResume start");
-		//サービススタート
 		Intent serviceIntent = new Intent(this, RunawayService.class);
-		startService(serviceIntent);
 		//bind
 		bindService(serviceIntent, mConnection, Context.BIND_AUTO_CREATE);
-		
-		dispCount(3);
 	}
 	
 	/**
@@ -108,24 +110,8 @@ public class TimerActivity extends Activity {
 	private void dispCount(final int cnt) {
 		if (cnt == 0) {
 			//カウントダウン終了時
-			mBg.setVisibility(View.VISIBLE);
-			mTimerLayout.setVisibility(View.VISIBLE);
-			mGiveUpButton.setVisibility(View.VISIBLE);
-			new Thread(new Runnable() {
-				
-				@Override
-				public void run() {
-					while (mRestTime >= 0) {
-						drawHandler.sendEmptyMessage(0);
-						try {
-							Thread.sleep(1000);
-						} catch (Exception e) {
-							;
-						}
-						mRestTime--;
-					}
-				}
-			}).start();
+			mService.startGame(mTimes);
+			startTimer();
 			return;
 		}
 		AnimationSet animationSet = new AnimationSet(true);
@@ -159,13 +145,58 @@ public class TimerActivity extends Activity {
 	}
 	
 	/**
+	 * タイマー始動
+	 */
+	private void startTimer() {
+		mBg.setVisibility(View.VISIBLE);
+		mTimerLayout.setVisibility(View.VISIBLE);
+		mGiveUpButton.setVisibility(View.VISIBLE);
+		new Thread(new Runnable() {
+			
+			@Override
+			public void run() {
+				while (mService.getRestTime() >= 0) {
+					drawHandler.sendEmptyMessage(0);
+					try {
+						Thread.sleep(500);
+					} catch (Exception e) {
+						;
+					}
+				}
+				runOnUiThread(new Runnable() {
+					
+					@Override
+					public void run() {
+						if (mService.getEnd() > 0) {
+							mAlert.setVisibility(View.VISIBLE);
+							mAlert.setText("Game Over");
+							mp.pause();
+							mp_end.start();
+							return;
+						}
+					}
+				});
+			}
+		}).start();
+	}
+	
+	/**
 	 * タイマー描画
 	 */
 	private Handler drawHandler = new Handler() {
 		public void handleMessage(Message msg) {
-			Log.d("TimerActivity", "call drawHandler:" + mCount + "/" + mRestTime);
-			mHour.setText(Integer.toString((int)(mRestTime / 60)));
-			mSec.setText(String.format("%02d", mRestTime % 60));
+			Log.d("TimerActivity", "call drawHandler");
+			long time = mService.getRestTime();
+			mHour.setText(Integer.toString((int)(time / 60)));
+			mSec.setText(String.format("%02d", time % 60));
+			if (mService.isEncounted()) {
+				mAlert.setVisibility(View.VISIBLE);
+				mAlert.setText("ハンター接近！！");
+				mp.start();
+			} else {
+				mAlert.setVisibility(View.GONE);
+				if (mp.isPlaying()) mp.pause();
+			}
 		};
 	};
 
@@ -179,8 +210,8 @@ public class TimerActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		mRestTime = 0;
-		mCount = 0;
 		Log.d(TAG, "onDestroy start");
+		mp.release();
+		mp_end.release();
 	}
 }
