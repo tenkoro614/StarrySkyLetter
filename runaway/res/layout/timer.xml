@@ -1,38 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@drawable/background_none">
 
-    <TextView
-        android:id="@+id/textTimer"
+    <LinearLayout 
+    	android:id="@+id/layoutBg"
+    	android:layout_width="match_parent"
+    	android:layout_height="match_parent"
+    	android:orientation="vertical"
+    	android:background="@drawable/round"
+    	></LinearLayout>
+    <LinearLayout 
+        android:id="@+id/layoutTimer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_alignParentTop="true"
+        android:layout_marginTop="180dip"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal|bottom">
+	    <TextView
+	        android:id="@+id/textHour"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textColor="#ffff0000"
+	        android:textSize="80dip" />
+	    <TextView
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textColor="#ffffffff"
+	        android:text="分"
+	        android:textSize="30dip" />
+	    <TextView
+	        android:id="@+id/textSec"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textColor="#ffff0000"
+	        android:textSize="80dip" />
+	    <TextView
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:textColor="#ffffffff"
+	        android:text="秒"
+	        android:textSize="30dip" />
+        
+    </LinearLayout>
+    
+    <ImageView
+        android:id="@+id/buttonGiveUp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/layoutTimer"
+        android:layout_marginTop="15dip"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/n_selector"/>
+    
+    <ImageView 
+        android:id="@+id/imageCountDown"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
-        android:text="00:00 00:00"
-        android:textSize="55dip" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_toLeftOf="@+id/textRest"
-        android:layout_below="@id/textTimer"
-        android:text="残り："
-        android:textSize="20dip" />
-
-    <TextView
-        android:id="@+id/textRest"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignRight="@id/textTimer"
-        android:layout_below="@id/textTimer"
-        android:text="00時間00分"
-        android:textSize="20dip" />
-    <RatingBar 
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/textRest"
-        android:layout_alignRight="@id/textTimer"
-        android:numStars="4"/>
+        android:visibility="gone"/>
 
 </RelativeLayout>

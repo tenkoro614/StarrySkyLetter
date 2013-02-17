@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
+<FrameLayout android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    xmlns:android="http://schemas.android.com/apk/res/android">
 <LinearLayout android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical" xmlns:android="http://schemas.android.com/apk/res/android">
+    android:paddingLeft="20dip"
+    android:paddingRight="20dip"
+    android:orientation="vertical" >
 
-    <TextView
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="ゲーム設定" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="ゲーム範囲選択" />
+        android:layout_marginTop="80dp"
+        android:src="@drawable/title01_area" />
     
     <LinearLayout 
         android:layout_width="match_parent"
@@ -21,27 +21,30 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
         
-	    <RatingBar
-	        android:id="@+id/ratingArea"
-	        android:numStars="4"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content" />
+	    <SeekBar
+	        android:id="@+id/seekArea"
+	        android:layout_width="200dip"
+	        android:layout_height="wrap_content"
+	        android:max="4"
+	        android:progress="0" />
 	    
 	    <TextView 
 	        android:id="@+id/textArea"
 	        android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textColor="@android:color/white"
             android:textSize="20sp"
             android:text="200M" 
 	        />
     </LinearLayout>
 
 
-    <TextView
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="ハンター人数" />
+        android:layout_marginTop="10dp"
+        android:src="@drawable/title02_hunter"/>
     
     <LinearLayout 
         android:layout_width="match_parent"
@@ -49,37 +52,76 @@
         android:gravity="center_vertical"
         android:orientation="horizontal">
         
-	    <RatingBar
-	        android:id="@+id/ratingHunters"
-	        android:numStars="4"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content" />
+	    <SeekBar
+	        android:id="@+id/seekHunter"
+	        android:layout_width="200dip"
+	        android:layout_height="wrap_content"
+	        android:max="4" />
 	    
 	    <TextView 
-	        android:id="@+id/textHunters"
+	        android:id="@+id/textHunter"
 	        android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textColor="@android:color/white"
             android:textSize="20sp"
             android:text="4人" 
 	        />
     </LinearLayout>
 
-    <TextView
+    <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="ゲーム時間" />
+        android:layout_marginTop="10dp"
+        android:src="@drawable/title03_time" />
+    
+    <LinearLayout 
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+        
+	    <SeekBar
+	        android:id="@+id/seekTime"
+	        android:layout_width="200dip"
+	        android:layout_height="wrap_content"
+	        android:max="4"/>
+	    
+	    <TextView 
+	        android:id="@+id/textTime"
+	        android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="10dp"
+            android:textColor="@android:color/white"
+            android:textSize="20sp"
+            android:text="60分" 
+	        />
+    </LinearLayout>
 
-    <TimePicker
-        android:id="@+id/timePicker1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" />
-
-    <Button
+    <ImageView
         android:id="@+id/buttonStart"
+        android:layout_marginTop="30dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="20sp"
-        android:text="スタート" />
+        android:layout_gravity="center_horizontal"
+        android:clickable="true"
+        android:focusable="true"
+        android:src="@drawable/button_selector" />
 
 </LinearLayout>
+
+<ImageView 
+    android:id="@+id/imageSplash"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:src="@drawable/sprash"
+    android:scaleType="fitXY"/>
+
+<ImageView 
+    android:id="@+id/imageWhite"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:src="@drawable/white"
+    android:scaleType="fitXY"
+    android:visibility="gone"/>
+</FrameLayout>
